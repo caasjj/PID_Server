@@ -9,10 +9,11 @@ var header  = new Buffer([0x44, 0x33, 0x22, 0x11]);
 var trailer = new Buffer([0xBB, 0xCC, 0xDD, 0xEE]);
 
 
-function MSGParser(startDelimiter, tailDelimiter, msgLength) {
+function MSGParser(startDelimiter, tailDelimiter) {
 
     var _sync = false;
     var previous = new Buffer(0);
+    var msgLength;
 
     return function(emitter, buffer) {
 
@@ -21,7 +22,7 @@ function MSGParser(startDelimiter, tailDelimiter, msgLength) {
         buffer = Buffer.concat([previous, buffer]);
 
         var index = 0;
-        while (!_sync && index < (buffer.length - startDelimiter.length + 2) ) {
+        while (!_sync && index < (buffer.length - startDelimiter.length + 3) ) {
             startBuffer = buffer.slice(index, index + startDelimiter.length);
             if( startBuffer.equals(startDelimiter) ) {
                 _sync = true;
@@ -62,8 +63,38 @@ function MSGParser(startDelimiter, tailDelimiter, msgLength) {
 
 var sp = new SerialPort("/dev/tty.usbmodemfa1231", {
     baudrate: 115200,
-    parser: MSGParser(header, trailer, 4*15+2)
+    parser: MSGParser(header, trailer)
 }, false); // this is the openImmediately flag [default is true]
+
+function parseDataMessage(chunk, length) {
+
+    var startWord = 0;
+    var output =  {
+        timeStamp: chunk.readUInt32LE(startWord, true),
+        adcInput : chunk.readFloatLE(startWord+4, true),
+        pidOutput: chunk.readFloatLE(startWord+8, true),
+        setPoint : chunk.readFloatLE(startWord+12, true),
+        dispKp: chunk.readFloatLE(startWord+16, true),
+        dispKi: chunk.readFloatLE(startWord+20, true),
+        dispKd: chunk.readFloatLE(startWord+24, true),
+        kp: chunk.readFloatLE(startWord+28, true),
+        ki: chunk.readFloatLE(startWord+32, true),
+        kd: chunk.readFloatLE(startWord+36, true),
+        ITerm: chunk.readFloatLE(startWord+40, true),
+        DTerm: chunk.readFloatLE(startWord+44, true),
+        lastInput: chunk.readFloatLE(startWord+48, true),
+        outMin: chunk.readFloatLE(startWord+52, true),
+        outMax: chunk.readFloatLE(startWord+56, true),
+        controllerDirection: chunk.readUInt8(startWord+60, true),
+        enable: chunk.readUInt8(startWord+61, true)
+    };
+
+    if (length > 65) {
+        output.extra = chunk.readFloatLE(startWord+62, true);
+    }
+
+    return JSON.stringify(output) + '\n';
+}
 
 sp.open(function (error) {
     if (error) {
@@ -74,36 +105,31 @@ sp.open(function (error) {
         sp.flush(function (err) {
             if (err) console.log('could not flush: ', err);
             sp
-                .pipe(through2(function(chunk, enc, callback){
+                .pipe(through2(function(chunk, enc, callback) {
 
-                    var startWord = 2;
                     var length = chunk.readUInt16BE(0, true);
-                    var output = {
-                        timeStamp: chunk.readUInt32LE(startWord, true),
-                        adcInput : chunk.readFloatLE(startWord+4, true),
-                        pidOutput: chunk.readFloatLE(startWord+8, true),
-                        setPoint : chunk.readFloatLE(startWord+12, true),
-                        dispKp: chunk.readFloatLE(startWord+16, true),
-                        dispKi: chunk.readFloatLE(startWord+20, true),
-                        dispKd: chunk.readFloatLE(startWord+24, true),
-                        kp: chunk.readFloatLE(startWord+28, true),
-                        ki: chunk.readFloatLE(startWord+32, true),
-                        kd: chunk.readFloatLE(startWord+36, true),
-                        ITerm: chunk.readFloatLE(startWord+40, true),
-                        DTerm: chunk.readFloatLE(startWord+44, true),
-                        lastInput: chunk.readFloatLE(startWord+48, true),
-                        outMin: chunk.readFloatLE(startWord+52, true),
-                        outMax: chunk.readFloatLE(startWord+56, true),
-                        controllerDirection: chunk.readUInt8(startWord+60, true),
-                        enable: chunk.readUInt8(startWord+61, true)
-                    };
+                    var msgType = chunk.readInt8(2, true);
+                    var startWord = 3;
 
-                    if (length > 64) {
-                        output.extra = chunk.readFloatLE(startWord+62, true);
+                    switch (msgType) {
+                        case 1:
+                            var dataMessage = parseDataMessage(chunk.slice(startWord), length);
+                            this.push(dataMessage);
+                            break;
+
+                        case 2:
+                            this.push('Message type 2: ');
+                            var dataMessage = parseDataMessage(chunk.slice(startWord), length);
+                            this.push(dataMessage);
+                            break;
+
+                        default:
+                            this.push('Bad Message Type!');
+                            break;
                     }
-                    //console.log('Debug: ',  output);
-                    this.push(JSON.stringify(output)+'\n');
+
                     callback();
+
                 }))
                 .pipe(process.stdout);
 
