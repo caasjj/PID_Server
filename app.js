@@ -27,13 +27,17 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
         .pipe(process.stdout);
 
 
+    var enabled = false;
+
     setInterval( function() {
 
         var cmd = arduinoCmd(16, {
-            enabled: true
+            enabled: enabled
         });
 
+        enabled = !enabled;
         arduino.sendCommand(cmd);
+
     }, 5000);
 
 });
