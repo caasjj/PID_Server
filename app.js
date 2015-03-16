@@ -1,5 +1,10 @@
+GLOBAL._appStartTime = Date.now();
+
 var arduinoCom = require('./lib/arduino-com.js');
-var arduinoMsgParser = require('./lib/arduino-msgParser.js');
+var arduinoMessager = require('./lib/arduino-msgApi.js');
+
+var arduinoMsg = arduinoMessager.parser;
+var arduinoCmd = arduinoMessager.cmdBuffer;
 
 arduinoCom({baudRate: 500000}, function (err, arduino) {
 
@@ -17,8 +22,18 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
 
     arduino
 
-        .pipe(arduinoMsgParser)
+        .pipe(arduinoMsg)
 
         .pipe(process.stdout);
+
+
+    setInterval( function() {
+
+        var cmd = arduinoCmd(16, {
+            enabled: true
+        });
+
+        arduino.sendCommand(cmd);
+    }, 5000);
 
 });
