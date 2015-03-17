@@ -26,18 +26,37 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
 
         .pipe(process.stdout);
 
+    //var enabled = true;
+    //
+    //setInterval( function() {
+    //
+    //    var cmd = arduinoCmd(17, {
+    //        kp: 1.0,
+    //        ki: 2.0,
+    //        kd: 3.0,
+    //        kpAggressive: 2.0,
+    //        kiAggressive: 4.0,
+    //        kdAggressive: 6.0,
+    //        aggressiveCutoffPoint: 10.0,
+    //        loopUpdateRatio: 5,
+    //        loopPolarity: 0
+    //    });
+    //
+    //    arduino.sendCommand(cmd);
+    //
 
-    var enabled = false;
+    setTimeout( function() {
+        var cmd = arduinoCmd(10, {});
 
-    setInterval( function() {
-
-        var cmd = arduinoCmd(16, {
-            enabled: enabled
-        });
-
-        enabled = !enabled;
         arduino.sendCommand(cmd);
+        console.log('Enabled sampler!');
+    }, 2000);
 
-    }, 5000);
+    //
+    //    enabled = !enabled;
+    //
+    //
+    //}, 5000);
+
 
 });
