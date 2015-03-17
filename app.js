@@ -52,11 +52,16 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
         console.log('Enabled sampler!');
     }, 2000);
 
-    //
-    //    enabled = !enabled;
-    //
-    //
-    //}, 5000);
+    var enabled = 0;
+
+    setInterval( function() {
+
+        var cmd = arduinoCmd(18+enabled);
+        enabled = +(!enabled);
+        arduino.sendCommand(cmd);
+
+    }, 1100);
+
 
 
 });
