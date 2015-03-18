@@ -26,25 +26,6 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
 
         .pipe(process.stdout);
 
-    //var enabled = true;
-    //
-    //setInterval( function() {
-    //
-    //    var cmd = arduinoCmd(17, {
-    //        kp: 1.0,
-    //        ki: 2.0,
-    //        kd: 3.0,
-    //        kpAggressive: 2.0,
-    //        kiAggressive: 4.0,
-    //        kdAggressive: 6.0,
-    //        aggressiveCutoffPoint: 10.0,
-    //        loopUpdateRatio: 5,
-    //        loopPolarity: 0
-    //    });
-    //
-    //    arduino.sendCommand(cmd);
-    //
-
     setTimeout( function() {
         var cmd = arduinoCmd(10, {});
 
@@ -52,16 +33,42 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
         console.log('Enabled sampler!');
     }, 2000);
 
-    var enabled = 0;
 
-    setInterval( function() {
+    //var enabled = true;
+    setTimeout( function() {
 
-        var cmd = arduinoCmd(18+enabled);
-        enabled = +(!enabled);
+        var cmd = arduinoCmd(13, {
+            kp: 1.0,
+            ki: 2.0,
+            kd: 3.0,
+            kpAggressive: 2.5,
+            kiAggressive: 4.7,
+            kdAggressive: 6.2,
+            aggressiveCutoffPoint: 10.0,
+            loopUpdateRatio: 5,
+            loopPolarity: -1
+        });
+
         arduino.sendCommand(cmd);
 
-    }, 1100);
+    }, 3000);
 
+    setTimeout( function() {
 
+        var cmd = arduinoCmd(17, {
+            setpoint: 2.5,
+            loopEnabled: true
+        });
+
+        arduino.sendCommand(cmd);
+
+    }, 4000);
+
+    //setInterval( function() {
+    //
+    //    var cmd = arduinoCmd(14, {});
+    //    arduino.sendCommand(cmd);
+    //
+    //}, 1000);
 
 });
