@@ -26,6 +26,7 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
 
         .pipe(process.stdout);
 
+    // ENABLE_SAMPLER_CMD
     setTimeout( function() {
         var cmd = arduinoCmd(10, {});
 
@@ -34,17 +35,17 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
     }, 2000);
 
 
-    //var enabled = true;
+    //SET_LOOP_K_CMD
     setTimeout( function() {
 
         var cmd = arduinoCmd(13, {
-            kp: 1.0,
-            ki: 2.0,
-            kd: 3.0,
-            kpAggressive: 2.5,
-            kiAggressive: 4.7,
-            kdAggressive: 6.2,
-            aggressiveCutoffPoint: 10.0,
+            kp: 1,
+            ki: 2,
+            kd: 3,
+            kpAggressive: 5,
+            kiAggressive: 7,
+            kdAggressive: 6,
+            aggressiveCutoffPoint: 10,
             loopUpdateRatio: 5,
             loopPolarity: -1
         });
@@ -53,10 +54,11 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
 
     }, 3000);
 
+    // SET_SETPOINT_CMD
     setTimeout( function() {
 
         var cmd = arduinoCmd(17, {
-            setpoint: 2.5,
+            setpoint: 12,
             loopEnabled: true
         });
 
