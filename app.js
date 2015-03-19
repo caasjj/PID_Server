@@ -54,17 +54,33 @@ arduinoCom({baudRate: 500000}, function (err, arduino) {
 
     }, 3000);
 
+    var enabled=true;
+    var on = arduinoCmd(16, {});
+    var off = arduinoCmd(16, {});
+    var redo = arduinoCmd(12, {
+        pulseWidth: 2,
+        numBits: 4,
+        'pwmValue': 15
+    });
     // SET_SETPOINT_CMD
-    setTimeout( function() {
+    setTimeout(function() {
+        arduino.sendCommand(redo);
+    }, 3000);
 
-        var cmd = arduinoCmd(17, {
-            setpoint: 12,
-            loopEnabled: true
-        });
-
-        arduino.sendCommand(cmd);
-
-    }, 4000);
+    //setInterval( function() {
+    //
+    //    if (enabled) {
+    //        arduino.sendCommand(on);
+    //        enabled = false;
+    //    }
+    //    else
+    //    {
+    //        arduino.sendCommand(off);
+    //        enabled = true;
+    //    }
+    //
+    //
+    //}, 4000);
 
     //setInterval( function() {
     //
